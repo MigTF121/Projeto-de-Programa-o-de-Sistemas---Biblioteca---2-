@@ -12,7 +12,6 @@ import com.project.demo.classes.Emprestimo;
 import com.project.demo.classes.Exemplar;
 import com.project.demo.classes.Funcionario;
 import com.project.demo.classes.Livro;
-import com.project.demo.classes.Usuario;
 
 
 
