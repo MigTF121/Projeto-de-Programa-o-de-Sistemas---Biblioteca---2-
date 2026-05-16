@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Funcionários</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
+</head>
+
+<body>
+    <h1>Gerenciamento de Funcionários</h1>
+
+    <table id="tabelaFormulario">
+        <tr> <td>ID:</td> <td><input type="text" id="txtId"></td> </tr>
+        <tr> <td>Nome Completo:</td> <td><input type="text" id="txtNome"></td> </tr>
+        <tr> <td>Data de Nascimento:</td> <td><input type="date" id="txtDataNascimento"></td> </tr>
+        <tr> <td>Telefone:</td> <td><input type="text" id="txtTelefone"></td> </tr>
+        <tr> <td>ID Funcional:</td> <td><input type="number" id="txtIdFuncional"></td> </tr>
+        <tr> <td>Email:</td> <td><input type="text" id="txtEmail" disabled></td> </tr>
+        <tr><td></td><td>
+            <input type="button" value="Salvar" onclick="salvarFuncionario()" id="btnSalvar">
+            <input type="button" value="Apagar" onclick="apagarFuncionario()" id="btnApagar">
+            <input type="button" value="Cancelar" onclick="cancelarEdicao()" id="btnCancelar">
+        </td></tr>
+    </table>
+
+    <p style="font-weight:bold" id="paragrafoMensagem"></p>
+
+    <table id="tabelaFuncionarios">
+        <tr><td><input type="button" value="Novo" onclick="novoFuncionario()" id="btnNovo"></td><td></td><td></td></tr>
+        <tr> <th>ID</th> <th>Nome</th> <th>Telefone</th> <th>ID Funcional</th> <th>Email</th> </tr>
+        <tbody id="corpoTabelaFuncionarios"></tbody>
+    </table>
+
+    <script src="rest.js"></script>
+    <script>
+        const tabelaFuncionarios = document.querySelector('#tabelaFuncionarios');
+        const tabelaFormulario = document.querySelector('#tabelaFormulario');
+        const corpoTabela = document.querySelector('#corpoTabelaFuncionarios');
+        const paragrafoMensagem = document.querySelector('#paragrafoMensagem');
+        const txtId = document.querySelector('#txtId');
+        const txtNome = document.querySelector('#txtNome');
+        const txtDataNascimento = document.querySelector('#txtDataNascimento');
+        const txtTelefone = document.querySelector('#txtTelefone');
+        const txtIdFuncional = document.querySelector('#txtIdFuncional');
+        const txtEmail = document.querySelector('#txtEmail');
+
+        const btnNovo = document.querySelector('#btnNovo');
+        const btnSalvar = document.querySelector('#btnSalvar');
+        const btnApagar = document.querySelector('#btnApagar');
+        const btnCancelar = document.querySelector('#btnCancelar');
+        var criandoNovoFuncionario = false;
+
+        inicializar();
+
+        function inicializar() {
+            criandoNovoFuncionario = false;
+            paragrafoMensagem.textContent = 'Pressione o botão Novo ou selecione um funcionário da lista:';
+            txtId.value = '';
+            txtNome.value = '';
+            txtDataNascimento.value = '';
+            txtTelefone.value = '';
+            txtIdFuncional.value = '';
+            txtEmail.value = '';
+            txtId.disabled = true;
+            txtNome.disabled = true;
+            txtDataNascimento.disabled = true;
+            txtTelefone.disabled = true;
+            txtIdFuncional.disabled = true;
+            txtEmail.disabled = true;
+
+            btnNovo.disabled = false;
+            btnSalvar.disabled = true;
+            btnApagar.disabled = true;
+            btnCancelar.disabled = true;
+
+            tabelaFormulario.style.display = 'none';
+            tabelaFuncionarios.style.display = 'inline';
+
+            listarTodosFuncionarios();
+        }
+
+        function listarTodosFuncionarios() {
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = "Erro ao listar funcionários (código " + error.message + ")";
+            }
+            asyncLerFuncionarios(preencherTabela, errorHandler);
+        }
+
+        function preencherTabela(funcionarios) {
+            corpoTabela.innerHTML = "";
+            for (var i = 0; i < funcionarios.length; i++) {
+                let f = funcionarios[i];
+                let linha = corpoTabela.insertRow();
+                let celulaId = linha.insertCell();
+                linha.insertCell().textContent = f.nomeCompleto;
+                linha.insertCell().textContent = f.telefone;
+                linha.insertCell().textContent = f.idFuncionario;
+                linha.insertCell().textContent = f.emailFuncionario;
+
+                let alink = document.createElement('a');
+                alink.textContent = f.id;
+                alink.href = "javascript:void(0)";
+                alink.onclick = function() { selecionarFuncionario(f.id); };
+                celulaId.appendChild(alink);
+            }
+        }
+
+        function selecionarFuncionario(id) {
+            criandoNovoFuncionario = false;
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = "Erro ao selecionar funcionário (código " + error.message + ")";
+            }
+            asyncLerFuncionarioById(id, preencherFormulario, errorHandler);
+        }
+
+        function preencherFormulario(funcionario) {
+            paragrafoMensagem.textContent = 'Altere e salve os dados do funcionário, ou então apague o registro.';
+            txtId.value = funcionario.id;
+            txtNome.value = funcionario.nomeCompleto;
+            txtDataNascimento.value = funcionario.dataNascimento;
+            txtTelefone.value = funcionario.telefone;
+            txtIdFuncional.value = funcionario.idFuncionario;
+            txtEmail.value = funcionario.emailFuncionario;
+
+            txtId.disabled = true;
+            txtNome.disabled = false;
+            txtDataNascimento.disabled = false;
+            txtTelefone.disabled = false;
+            txtIdFuncional.disabled = false;
+            txtEmail.disabled = true;
+
+            btnNovo.disabled = true;
+            btnSalvar.disabled = false;
+            btnApagar.disabled = false;
+            btnCancelar.disabled = false;
+
+            tabelaFormulario.style.display = 'inline';
+            tabelaFuncionarios.style.display = 'none';
+        }
+
+        function novoFuncionario() {
+            paragrafoMensagem.textContent = 'Preencha os dados do novo funcionário...';
+            criandoNovoFuncionario = true;
+
+            txtId.value = '';
+            txtNome.value = '';
+            txtDataNascimento.value = '';
+            txtTelefone.value = '';
+            txtIdFuncional.value = '';
+            txtEmail.value = '';
+
+            txtId.disabled = true;
+            txtNome.disabled = false;
+            txtDataNascimento.disabled = false;
+            txtTelefone.disabled = false;
+            txtIdFuncional.disabled = false;
+            txtEmail.disabled = true;
+
+            btnNovo.disabled = true;
+            btnSalvar.disabled = false;
+            btnApagar.disabled = true;
+            btnCancelar.disabled = false;
+
+            tabelaFormulario.style.display = 'inline';
+            tabelaFuncionarios.style.display = 'none';
+        }
+
+        function salvarFuncionario() {
+            if (criandoNovoFuncionario) {
+                criarFuncionario();
+            } else {
+                alterarFuncionario();
+            }
+        }
+
+        function criarFuncionario() {
+            const dadosFuncionario = {
+                'nomeCompleto': txtNome.value,
+                'dataNascimento': txtDataNascimento.value,
+                'telefone': txtTelefone.value,
+                'idFuncionario': parseInt(txtIdFuncional.value)
+            };
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = 'Erro ao criar funcionário (código ' + error.message + ')';
+            }
+            asyncCriarFuncionario(dadosFuncionario, inicializar, errorHandler);
+        }
+
+        function alterarFuncionario() {
+            const dadosFuncionario = {
+                'id': txtId.value,
+                'nomeCompleto': txtNome.value,
+                'dataNascimento': txtDataNascimento.value,
+                'telefone': txtTelefone.value,
+                'idFuncionario': parseInt(txtIdFuncional.value)
+            };
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = 'Erro ao alterar funcionário (código ' + error.message + ')';
+            }
+            asyncAlterarFuncionario(dadosFuncionario, inicializar, errorHandler);
+        }
+
+        function cancelarEdicao() {
+            inicializar();
+        }
+
+        function apagarFuncionario() {
+            const id = txtId.value;
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = 'Erro ao apagar funcionário (código ' + error.message + ')';
+            }
+            asyncApagarFuncionario(id, inicializar, errorHandler);
+        }
+    </script>
+</body>
+
+</html>

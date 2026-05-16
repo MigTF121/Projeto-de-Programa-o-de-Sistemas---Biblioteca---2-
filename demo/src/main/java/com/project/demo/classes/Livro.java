@@ -1,92 +1,80 @@
 package com.project.demo.classes;
-import java.util.ArrayList;
 
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "livros")
 public class Livro {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int codigoLivro;
+
+    @Column(nullable = false)
     private String titulo;
+
+    @Column(nullable = false)
     private String autor;
+
     private int anoPublicacao;
-    private ArrayList<Exemplar> exemplares;
 
-    public Livro(int codigoLivro, String titulo, String autor, int anoPublicacao) {
-        if (codigoLivro <= 0) {
-            throw new IllegalArgumentException("Código do livro inválido.");
-        }
+    @OneToMany(mappedBy = "livro", cascade = CascadeType.ALL)
+    private List<Exemplar> exemplares = new ArrayList<>();
 
-        if (titulo == null || titulo.isEmpty()) {
+    public Livro() {}
+
+    public Livro(String titulo, String autor, int anoPublicacao) {
+        if (titulo == null || titulo.isEmpty())
             throw new IllegalArgumentException("Título inválido.");
-        }
 
-        if (anoPublicacao < 0) {
-            throw new IllegalArgumentException("Ano inválido.");
-        }
-
-        if (autor == null || autor.isEmpty()) {
+        if (autor == null || autor.isEmpty())
             throw new IllegalArgumentException("Autor inválido.");
-        }
-        
-        this.codigoLivro = codigoLivro;
+
+        if (anoPublicacao < 0)
+            throw new IllegalArgumentException("Ano inválido.");
+
         this.titulo = titulo;
         this.autor = autor;
         this.anoPublicacao = anoPublicacao;
         this.exemplares = new ArrayList<>();
     }
 
-    public Livro(int codigoLivro, String titulo) {
-        this(codigoLivro, titulo, "Autor desconhecido", 0);
-    }
+    public int getCodigoLivro() { return codigoLivro; }
 
-    public int getCodigoLivro() {
-        return codigoLivro;
-    }
+    public String getTitulo() { return titulo; }
 
-    public String getTitulo() {
-        return titulo;
-    }
+    public String getAutor() { return autor; }
 
-    public String getAutor() {
-        return autor;
-    }
+    public List<Exemplar> getExemplares() { return new ArrayList<>(exemplares); }
 
-    public ArrayList<Exemplar> getExemplares() {
-        return new ArrayList<>(exemplares);
-    }
-
-    public void adicionarExemplar(Exemplar e) {
-        exemplares.add(e);
-    }
+    public void adicionarExemplar(Exemplar e) { exemplares.add(e); }
 
     public void listarExemplaresDisponiveis() {
         boolean encontrou = false;
-
         for (Exemplar e : exemplares) {
             if (e.isDisponivel()) {
                 System.out.println(e);
                 encontrou = true;
             }
         }
-
-        if (!encontrou) {
+        if (!encontrou)
             System.out.println("Nenhum exemplar disponível para este livro.");
-        }
     }
 
     public int getQuantidadeDisponiveis() {
         int count = 0;
-        for (Exemplar e : exemplares) {
-            if (e.isDisponivel()) {
-                count++;
-            }
-        }
+        for (Exemplar e : exemplares)
+            if (e.isDisponivel()) count++;
         return count;
     }
 
     @Override
     public String toString() {
         return "Código: " + codigoLivro +
-                "\nTítulo: " + titulo +
-                "\nAutor: " + autor +
-                "\nAno: " + anoPublicacao;
+               "\nTítulo: " + titulo +
+               "\nAutor: " + autor +
+               "\nAno: " + anoPublicacao;
     }
 }

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Empréstimos</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
+</head>
+
+<body>
+    <h1>Gerenciamento de Empréstimos</h1>
+
+    <table id="tabelaFormulario">
+        <tr> <td>Usuário:</td> <td>
+            <select id="selectUsuario"></select>
+        </td> </tr>
+        <tr> <td>Exemplar:</td> <td>
+            <select id="selectExemplar"></select>
+        </td> </tr>
+        <tr><td></td><td>
+            <input type="button" value="Salvar" onclick="salvarEmprestimo()" id="btnSalvar">
+            <input type="button" value="Cancelar" onclick="cancelarEdicao()" id="btnCancelar">
+        </td></tr>
+    </table>
+
+    <p style="font-weight:bold" id="paragrafoMensagem"></p>
+
+    <table id="tabelaEmprestimos">
+        <tr><td><input type="button" value="Novo" onclick="novoEmprestimo()" id="btnNovo"></td><td></td><td></td></tr>
+        <tr> <th>ID</th> <th>Usuário</th> <th>Exemplar</th> <th>Data Empréstimo</th> <th>Devolução Prevista</th> <th>Ação</th> </tr>
+        <tbody id="corpoTabelaEmprestimos"></tbody>
+    </table>
+
+    <script src="rest.js"></script>
+    <script>
+        const tabelaEmprestimos = document.querySelector('#tabelaEmprestimos');
+        const tabelaFormulario = document.querySelector('#tabelaFormulario');
+        const corpoTabela = document.querySelector('#corpoTabelaEmprestimos');
+        const paragrafoMensagem = document.querySelector('#paragrafoMensagem');
+        const selectUsuario = document.querySelector('#selectUsuario');
+        const selectExemplar = document.querySelector('#selectExemplar');
+
+        const btnNovo = document.querySelector('#btnNovo');
+        const btnSalvar = document.querySelector('#btnSalvar');
+        const btnCancelar = document.querySelector('#btnCancelar');
+
+        inicializar();
+
+        function inicializar() {
+            paragrafoMensagem.textContent = 'Pressione o botão Novo para registrar um empréstimo:';
+
+            btnNovo.disabled = false;
+            btnSalvar.disabled = true;
+            btnCancelar.disabled = true;
+
+            tabelaFormulario.style.display = 'none';
+            tabelaEmprestimos.style.display = 'inline';
+
+            listarTodosEmprestimos();
+        }
+
+        function listarTodosEmprestimos() {
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = "Erro ao listar empréstimos (código " + error.message + ")";
+            }
+            asyncLerEmprestimos(preencherTabela, errorHandler);
+        }
+
+        function preencherTabela(emprestimos) {
+            corpoTabela.innerHTML = "";
+            for (var i = 0; i < emprestimos.length; i++) {
+                let e = emprestimos[i];
+                let linha = corpoTabela.insertRow();
+                linha.insertCell().textContent = e.id;
+                linha.insertCell().textContent = e.usuario.nomeCompleto;
+                linha.insertCell().textContent = e.exemplar.codigoExemplar + ' - ' + e.exemplar.livro.titulo;
+                linha.insertCell().textContent = e.dataEmprestimo;
+                linha.insertCell().textContent = e.dataDevolucaoPrevista;
+
+                let celulAcao = linha.insertCell();
+                if (e.dataDevolucaoReal == null) {
+                    let btnDevolver = document.createElement('input');
+                    btnDevolver.type = 'button';
+                    btnDevolver.value = 'Devolver';
+                    btnDevolver.onclick = function() { devolverEmprestimo(e.id); };
+                    celulAcao.appendChild(btnDevolver);
+                } else {
+                    celulAcao.textContent = 'Devolvido';
+                }
+            }
+        }
+
+        function novoEmprestimo() {
+            paragrafoMensagem.textContent = 'Selecione o usuário e o exemplar...';
+
+            btnNovo.disabled = true;
+            btnSalvar.disabled = false;
+            btnCancelar.disabled = false;
+
+            tabelaFormulario.style.display = 'inline';
+            tabelaEmprestimos.style.display = 'none';
+
+            carregarDropdowns();
+        }
+
+        function carregarDropdowns() {
+            asyncLerUsuarios(function(usuarios) {
+                selectUsuario.innerHTML = "";
+                usuarios.forEach(u => {
+                    let opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = u.nomeCompleto;
+                    selectUsuario.appendChild(opt);
+                });
+            }, function(error) {
+                paragrafoMensagem.textContent = 'Erro ao carregar usuários (código ' + error.message + ')';
+            });
+
+            asyncLerExemplaresDisponiveis(function(exemplares) {
+                selectExemplar.innerHTML = "";
+                exemplares.forEach(ex => {
+                    let opt = document.createElement('option');
+                    opt.value = ex.codigoExemplar;
+                    opt.textContent = ex.codigoExemplar + ' - ' + ex.livro.titulo;
+                    selectExemplar.appendChild(opt);
+                });
+            }, function(error) {
+                paragrafoMensagem.textContent = 'Erro ao carregar exemplares (código ' + error.message + ')';
+            });
+        }
+
+        function salvarEmprestimo() {
+            const dadosEmprestimo = {
+                'usuarioId': selectUsuario.value,
+                'exemplarId': selectExemplar.value
+            };
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = 'Erro ao criar empréstimo (código ' + error.message + ')';
+            }
+            asyncCriarEmprestimo(dadosEmprestimo, inicializar, errorHandler);
+        }
+
+        function devolverEmprestimo(id) {
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = 'Erro ao registrar devolução (código ' + error.message + ')';
+            }
+            asyncDevolverEmprestimo(id, inicializar, errorHandler);
+        }
+
+        function cancelarEdicao() {
+            inicializar();
+        }
+    </script>
+</body>
+
+</html>

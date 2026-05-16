@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Usuários</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css">
+</head>
+
+<body>
+    <h1>Gerenciamento de Usuários</h1>
+
+    <table id="tabelaFormulario">
+        <tr> <td>ID:</td> <td><input type="text" id="txtId"></td> </tr>
+        <tr> <td>Nome Completo:</td> <td><input type="text" id="txtNome"></td> </tr>
+        <tr> <td>Data de Nascimento:</td> <td><input type="date" id="txtDataNascimento"></td> </tr>
+        <tr> <td>Telefone:</td> <td><input type="text" id="txtTelefone"></td> </tr>
+        <tr> <td>Registro:</td> <td><input type="number" id="txtRegistro"></td> </tr>
+        <tr> <td>Email:</td> <td><input type="text" id="txtEmail" disabled></td> </tr>
+        <tr> <td>Livros Emprestados:</td> <td><input type="text" id="txtLivrosEmprestados" disabled></td> </tr>
+        <tr><td></td><td>
+            <input type="button" value="Salvar" onclick="salvarUsuario()" id="btnSalvar">
+            <input type="button" value="Apagar" onclick="apagarUsuario()" id="btnApagar">
+            <input type="button" value="Cancelar" onclick="cancelarEdicao()" id="btnCancelar">
+        </td></tr>
+    </table>
+
+    <p style="font-weight:bold" id="paragrafoMensagem"></p>
+
+    <table id="tabelaUsuarios">
+        <tr><td><input type="button" value="Novo" onclick="novoUsuario()" id="btnNovo"></td><td></td><td></td></tr>
+        <tr> <th>ID</th> <th>Nome</th> <th>Telefone</th> <th>Registro</th> <th>Email</th> <th>Livros Emprestados</th> </tr>
+        <tbody id="corpoTabelaUsuarios"></tbody>
+    </table>
+
+    <script src="rest.js"></script>
+    <script>
+        const tabelaUsuarios = document.querySelector('#tabelaUsuarios');
+        const tabelaFormulario = document.querySelector('#tabelaFormulario');
+        const corpoTabela = document.querySelector('#corpoTabelaUsuarios');
+        const paragrafoMensagem = document.querySelector('#paragrafoMensagem');
+        const txtId = document.querySelector('#txtId');
+        const txtNome = document.querySelector('#txtNome');
+        const txtDataNascimento = document.querySelector('#txtDataNascimento');
+        const txtTelefone = document.querySelector('#txtTelefone');
+        const txtRegistro = document.querySelector('#txtRegistro');
+        const txtEmail = document.querySelector('#txtEmail');
+        const txtLivrosEmprestados = document.querySelector('#txtLivrosEmprestados');
+
+        const btnNovo = document.querySelector('#btnNovo');
+        const btnSalvar = document.querySelector('#btnSalvar');
+        const btnApagar = document.querySelector('#btnApagar');
+        const btnCancelar = document.querySelector('#btnCancelar');
+        var criandoNovoUsuario = false;
+
+        inicializar();
+
+        function inicializar() {
+            criandoNovoUsuario = false;
+            paragrafoMensagem.textContent = 'Pressione o botão Novo ou selecione um usuário da lista:';
+            txtId.value = '';
+            txtNome.value = '';
+            txtDataNascimento.value = '';
+            txtTelefone.value = '';
+            txtRegistro.value = '';
+            txtEmail.value = '';
+            txtLivrosEmprestados.value = '';
+            txtId.disabled = true;
+            txtNome.disabled = true;
+            txtDataNascimento.disabled = true;
+            txtTelefone.disabled = true;
+            txtRegistro.disabled = true;
+            txtEmail.disabled = true;
+            txtLivrosEmprestados.disabled = true;
+
+            btnNovo.disabled = false;
+            btnSalvar.disabled = true;
+            btnApagar.disabled = true;
+            btnCancelar.disabled = true;
+
+            tabelaFormulario.style.display = 'none';
+            tabelaUsuarios.style.display = 'inline';
+
+            listarTodosUsuarios();
+        }
+
+        function listarTodosUsuarios() {
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = "Erro ao listar usuários (código " + error.message + ")";
+            }
+            asyncLerUsuarios(preencherTabela, errorHandler);
+        }
+
+        function preencherTabela(usuarios) {
+            corpoTabela.innerHTML = "";
+            for (var i = 0; i < usuarios.length; i++) {
+                let u = usuarios[i];
+                let linha = corpoTabela.insertRow();
+                let celulaId = linha.insertCell();
+                linha.insertCell().textContent = u.nomeCompleto;
+                linha.insertCell().textContent = u.telefone;
+                linha.insertCell().textContent = u.registroUsuario;
+                linha.insertCell().textContent = u.emailUsuario;
+                linha.insertCell().textContent = u.quantidadeLivrosEmprestados + ' / ' + 3;
+
+                let alink = document.createElement('a');
+                alink.textContent = u.id;
+                alink.href = "javascript:void(0)";
+                alink.onclick = function() { selecionarUsuario(u.id); };
+                celulaId.appendChild(alink);
+            }
+        }
+
+        function selecionarUsuario(id) {
+            criandoNovoUsuario = false;
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = "Erro ao selecionar usuário (código " + error.message + ")";
+            }
+            asyncLerUsuarioById(id, preencherFormulario, errorHandler);
+        }
+
+        function preencherFormulario(usuario) {
+            paragrafoMensagem.textContent = 'Altere e salve os dados do usuário, ou então apague o registro.';
+            txtId.value = usuario.id;
+            txtNome.value = usuario.nomeCompleto;
+            txtDataNascimento.value = usuario.dataNascimento;
+            txtTelefone.value = usuario.telefone;
+            txtRegistro.value = usuario.registroUsuario;
+            txtEmail.value = usuario.emailUsuario;
+            txtLivrosEmprestados.value = usuario.quantidadeLivrosEmprestados + ' / ' + 3;
+
+            txtId.disabled = true;
+            txtNome.disabled = false;
+            txtDataNascimento.disabled = false;
+            txtTelefone.disabled = false;
+            txtRegistro.disabled = false;
+            txtEmail.disabled = true;
+            txtLivrosEmprestados.disabled = true;
+
+            btnNovo.disabled = true;
+            btnSalvar.disabled = false;
+            btnApagar.disabled = false;
+            btnCancelar.disabled = false;
+
+            tabelaFormulario.style.display = 'inline';
+            tabelaUsuarios.style.display = 'none';
+        }
+
+        function novoUsuario() {
+            paragrafoMensagem.textContent = 'Preencha os dados do novo usuário...';
+            criandoNovoUsuario = true;
+
+            txtId.value = '';
+            txtNome.value = '';
+            txtDataNascimento.value = '';
+            txtTelefone.value = '';
+            txtRegistro.value = '';
+            txtEmail.value = '';
+            txtLivrosEmprestados.value = '';
+
+            txtId.disabled = true;
+            txtNome.disabled = false;
+            txtDataNascimento.disabled = false;
+            txtTelefone.disabled = false;
+            txtRegistro.disabled = false;
+            txtEmail.disabled = true;
+            txtLivrosEmprestados.disabled = true;
+
+            btnNovo.disabled = true;
+            btnSalvar.disabled = false;
+            btnApagar.disabled = true;
+            btnCancelar.disabled = false;
+
+            tabelaFormulario.style.display = 'inline';
+            tabelaUsuarios.style.display = 'none';
+        }
+
+        function salvarUsuario() {
+            if (criandoNovoUsuario) {
+                criarUsuario();
+            } else {
+                alterarUsuario();
+            }
+        }
+
+        function criarUsuario() {
+            const dadosUsuario = {
+                'nomeCompleto': txtNome.value,
+                'dataNascimento': txtDataNascimento.value,
+                'telefone': txtTelefone.value,
+                'registroUsuario': parseInt(txtRegistro.value)
+            };
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = 'Erro ao criar usuário (código ' + error.message + ')';
+            }
+            asyncCriarUsuario(dadosUsuario, inicializar, errorHandler);
+        }
+
+        function alterarUsuario() {
+            const dadosUsuario = {
+                'id': txtId.value,
+                'nomeCompleto': txtNome.value,
+                'dataNascimento': txtDataNascimento.value,
+                'telefone': txtTelefone.value,
+                'registroUsuario': parseInt(txtRegistro.value)
+            };
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = 'Erro ao alterar usuário (código ' + error.message + ')';
+            }
+            asyncAlterarUsuario(dadosUsuario, inicializar, errorHandler);
+        }
+
+        function cancelarEdicao() {
+            inicializar();
+        }
+
+        function apagarUsuario() {
+            const id = txtId.value;
+            const errorHandler = function(error) {
+                paragrafoMensagem.textContent = 'Erro ao apagar usuário (código ' + error.message + ')';
+            }
+            asyncApagarUsuario(id, inicializar, errorHandler);
+        }
+    </script>
+</body>
+
+</html>

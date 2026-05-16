@@ -1,10 +1,29 @@
 package com.project.demo.classes;
 import java.time.LocalDate;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "pessoas")
 public class Pessoa {
+
+    // Novas adições para integração com Spring Data JPA
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column(nullable = false)
     private String nomeCompleto;
+
+    @Column(nullable = false)
     private LocalDate dataNascimento;
+
+    @Column(nullable = false)
     private String telefone;
+
+    public Pessoa() {}
+
+    //
 
     public Pessoa(String nomeCompleto, LocalDate dataNascimento, String telefone) {
         setNomeCompleto(nomeCompleto);
@@ -52,7 +71,7 @@ public class Pessoa {
     @Override
     public String toString() {
         return "Nome: " + nomeCompleto +
-               "\nData de nascimento: " + dataNascimento +
-               "\nTelefone: " + telefone;
+            "\nData de nascimento: " + dataNascimento +
+            "\nTelefone: " + telefone;
     }
 }
