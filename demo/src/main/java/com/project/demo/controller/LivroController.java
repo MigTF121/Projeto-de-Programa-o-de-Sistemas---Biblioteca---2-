@@ -20,22 +20,22 @@ public class LivroController {
         this.livroRepo = livroRepo;
     }
 
-    @GetMapping("/livros")
+    @GetMapping("/api/livros")
     public List<Livro> getAllLivros() {
         return livroRepo.findAll();
     }
 
-    @GetMapping("/livros/{id}")
+    @GetMapping("/api/livros/{id}")
     public void getLivroById(@PathVariable Integer id) {
         livroRepo.findById(id);
     }
 
-    @PostMapping("/livros")
+    @PostMapping("/api/livros")
     public void createLivro(@RequestBody Livro livro) {
         livroRepo.save(livro);
     }
 
-    @DeleteMapping("/livros/{id}")
+    @DeleteMapping("/api/livros/{id}")
     public void deleteLivro(@PathVariable Integer id) {
         livroRepo.deleteById(id);
     }

@@ -130,15 +130,13 @@
         }
 
         function salvarEmprestimo() {
-            const dadosEmprestimo = {
-                'usuarioId': selectUsuario.value,
-                'exemplarId': selectExemplar.value
-            };
-            const errorHandler = function(error) {
-                paragrafoMensagem.textContent = 'Erro ao criar empréstimo (código ' + error.message + ')';
-            }
-            asyncCriarEmprestimo(dadosEmprestimo, inicializar, errorHandler);
-        }
+    const usuarioId = selectUsuario.value;
+    const exemplarId = selectExemplar.value;
+    const errorHandler = function(error) {
+        paragrafoMensagem.textContent = 'Erro ao criar empréstimo (código ' + error.message + ')';
+    }
+    asyncCriarEmprestimo(usuarioId, exemplarId, inicializar, errorHandler);
+}
 
         function devolverEmprestimo(id) {
             const errorHandler = function(error) {

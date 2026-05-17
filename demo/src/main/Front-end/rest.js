@@ -54,16 +54,10 @@ async function asyncApagarLivro(id, proxsucesso, proxerro) {
         .catch(proxerro);
 }
 
-
 //area de emprestimos
-
-async function asyncCriarEmprestimo(dadosEmprestimo, proxsucesso, proxerro) {
-    const URL = `/api/emprestimos`;
-    const postRequest = {
-        method: 'POST',
-        body: JSON.stringify(dadosEmprestimo),
-        headers: { 'Content-type': 'application/json' }
-    };
+async function asyncCriarEmprestimo(usuarioId, exemplarId, proxsucesso, proxerro) {
+    const URL = `/api/emprestimos/registrar?registroUsuario=${usuarioId}&codigoExemplar=${exemplarId}`;
+    const postRequest = { method: 'POST' };
     fetch(URL, postRequest)
         .then(resposta => { if (!resposta.ok) throw Error(resposta.status); return resposta; })
         .then(resposta => resposta.json())
@@ -81,7 +75,7 @@ async function asyncLerEmprestimos(proxsucesso, proxerro) {
 }
 
 async function asyncDevolverEmprestimo(id, proxsucesso, proxerro) {
-    const URL = `/api/emprestimos/${id}/devolver`;
+    const URL = `/api/emprestimos/devolver/${id}`;
     const putRequest = { method: 'PUT' };
     fetch(URL, putRequest)
         .then(resposta => { if (!resposta.ok) throw Error(resposta.status); return resposta; })
@@ -89,26 +83,7 @@ async function asyncDevolverEmprestimo(id, proxsucesso, proxerro) {
         .catch(proxerro);
 }
 
-async function asyncLerUsuarios(proxsucesso, proxerro) {
-    const URL = `/api/usuarios`;
-    fetch(URL)
-        .then(resposta => { if (!resposta.ok) throw Error(resposta.status); return resposta; })
-        .then(resposta => resposta.json())
-        .then(jsonresponse => proxsucesso(jsonresponse))
-        .catch(proxerro);
-}
-
-async function asyncLerExemplaresDisponiveis(proxsucesso, proxerro) {
-    const URL = `/api/exemplares/disponiveis`;
-    fetch(URL)
-        .then(resposta => { if (!resposta.ok) throw Error(resposta.status); return resposta; })
-        .then(resposta => resposta.json())
-        .then(jsonresponse => proxsucesso(jsonresponse))
-        .catch(proxerro);
-}
-
 //area para funcionário
-
 async function asyncCriarFuncionario(dadosFuncionario, proxsucesso, proxerro) {
     const URL = `/api/funcionarios`;
     const postRequest = {
@@ -217,5 +192,15 @@ async function asyncApagarUsuario(id, proxsucesso, proxerro) {
     fetch(URL, deleteRequest)
         .then(resposta => { if (!resposta.ok) throw Error(resposta.status); return resposta; })
         .then(resposta => proxsucesso())
+        .catch(proxerro);
+}
+
+//area para exemplares
+async function asyncLerExemplaresDisponiveis(proxsucesso, proxerro) {
+    const URL = `/api/exemplares/disponiveis`;
+    fetch(URL)
+        .then(resposta => { if (!resposta.ok) throw Error(resposta.status); return resposta; })
+        .then(resposta => resposta.json())
+        .then(jsonresponse => proxsucesso(jsonresponse))
         .catch(proxerro);
 }

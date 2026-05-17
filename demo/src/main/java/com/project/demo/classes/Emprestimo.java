@@ -1,43 +1,73 @@
 package com.project.demo.classes;
+
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "emprestimos")
 public class Emprestimo {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
+
+    @ManyToOne
+    @JoinColumn(name = "exemplar_id", nullable = false)
     private Exemplar exemplar;
+
+    @Column(nullable = false)
     private LocalDate dataEmprestimo;
+
+    @Column(nullable = false)
     private LocalDate dataDevolucaoPrevista;
+
     private LocalDate dataDevolucaoReal;
+
+    public Emprestimo() {
+    }
 
     public Emprestimo(Usuario usuario, Exemplar exemplar) {
         if (usuario == null || exemplar == null) {
-            throw new IllegalArgumentException("Dados inválidos.");
+            throw new IllegalArgumentException("Usuário ou Exemplar não podem ser nulos.");
         }
 
         if (!exemplar.isDisponivel()) {
-            throw new IllegalArgumentException("Exemplar já emprestado.");
+            throw new IllegalStateException("Este exemplar já está emprestado.");
         }
 
         if (!usuario.podeEmprestar()) {
-            throw new IllegalArgumentException("Limite de livros atingido.");
+            throw new IllegalStateException("Usuário atingiu o limite de empréstimos.");
         }
 
         this.usuario = usuario;
         this.exemplar = exemplar;
         this.dataEmprestimo = LocalDate.now();
+
         this.dataDevolucaoPrevista = dataEmprestimo.plusDays(15);
 
+        // Atualiza o status do exemplar e do usuário
         exemplar.emprestar();
         usuario.adicionarLivroEmprestado(exemplar);
     }
 
     public void registrarDevolucao() {
         if (dataDevolucaoReal != null) {
-            throw new IllegalArgumentException("Empréstimo já finalizado.");
+            throw new IllegalStateException("Este empréstimo já foi devolvido.");
         }
 
         this.dataDevolucaoReal = LocalDate.now();
+
+        // Atualiza os status
         exemplar.devolver();
         usuario.removerLivroEmprestado(exemplar);
+    }
+
+    public int getId() {
+        return id;
     }
 
     public Usuario getUsuario() {
@@ -62,11 +92,9 @@ public class Emprestimo {
 
     @Override
     public String toString() {
-        return "Usuário: " + usuario.getNomeCompleto() +
-                "\nLivro: " + exemplar.getLivro().getTitulo() +
-                "\nExemplar: " + exemplar.getCodigoExemplar() +
-                "\nData empréstimo: " + dataEmprestimo +
-                "\nDevolução prevista: " + dataDevolucaoPrevista +
-                "\nDevolução real: " + (dataDevolucaoReal != null ? dataDevolucaoReal : "Pendente");
+        return "Empréstimo ID: " + id +
+                " | Usuário: " + usuario.getNomeCompleto() +
+                " | Livro: " + exemplar.getLivro().getTitulo() +
+                " | Previsão: " + dataDevolucaoPrevista;
     }
 }
